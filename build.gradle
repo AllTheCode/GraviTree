@@ -75,7 +75,7 @@ task dist(type: ShadowJar) {
             "compile",
     ]
     archiveName = "${project.version}.jar"
-    destinationDir = project.distFolder
+    destinationDir = rootProject?.distFolder ?: project.distFolder
     from "build/bin"
     try {
         from project.configurations.bundle
