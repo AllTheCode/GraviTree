@@ -17,9 +17,8 @@ apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "java"
 apply plugin: "idea"
 
-ext {
-    File distFolder = project.file("dist")
-}
+project.ext.set("distFolder", project.file("dist"))
+
 
 configurations {
     compile.extendsFrom(bundle)
