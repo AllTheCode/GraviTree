@@ -1,0 +1,85 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "com.github.jengelman.gradle.plugins:shadow:4.0.1"
+    }
+}
+
+apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: "java"
+apply plugin: "idea"
+
+ext {
+    File distFolder = project.file("dist")
+}
+
+configurations {
+    compile.extendsFrom(bundle)
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+
+dependencies {
+    compile "org.spigotmc:spigot-api:1.13.1-R0.1-SNAPSHOT"
+}
+
+version = "${project.name} - ${new Date().format('yyMMddHHmm')}"
+
+sourceSets.main.java.srcDirs = project.projectDir.listFiles(new FileFilter() {
+    @Override
+    boolean accept(File pathname) {
+        return pathname.name.split("/").last().startsWith("src")
+    }
+}).toList()
+
+new File("dist").deleteDir()
+
+sourceSets.main.java.srcDirs.each {
+    tasks.create(it.name.split("/").last(), Copy) {
+        from project.file(it.name.split("/").last())
+        into project.file("build/merged")
+    }
+}
+
+
+task compile(type: JavaCompile) {
+    dependsOn = project.tasks.withType(Copy)
+    destinationDir = project.file("build/bin")
+    source "build/merged"
+    sourceCompatibility = 1.8
+
+    classpath = project.configurations[name]
+}
+
+task copy(type: Copy) {
+    from project.file("resources")
+    include "**${File.separator}*.yml"
+    expand(project.properties)
+    into project.file("build/bin")
+}
+
+task dist(type: ShadowJar) {
+    dependsOn = [
+            "copy",
+            "compile",
+    ]
+    archiveName = "${project.version}.jar"
+    destinationDir = rootProject.distFolder
+    from "build/bin"
+    try {
+        from project.configurations.bundle
+    } catch (ignored) {
+    }
+}
