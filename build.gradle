@@ -1,5 +1,9 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 buildscript {
     repositories {
         jcenter()
@@ -34,7 +38,7 @@ dependencies {
     compile "org.spigotmc:spigot-api:1.13.1-R0.1-SNAPSHOT"
 }
 
-version = "${project.name} - ${new Date().format('yyMMddHHmm')}"
+version = LocalDateTime.now(ZoneId.of("America/Chicago")).format(DateTimeFormatter.ofPattern("yyMMddHHmm"))
 
 sourceSets.main.java.srcDirs = project.projectDir.listFiles(new FileFilter() {
     @Override
@@ -74,7 +78,7 @@ task dist(type: ShadowJar) {
             "copy",
             "compile",
     ]
-    archiveName = "${project.version}.jar"
+    archiveName = "${project.name} - ${project.version}.jar"
     destinationDir = rootProject?.distFolder ?: project.distFolder
     from "build/bin"
     try {
