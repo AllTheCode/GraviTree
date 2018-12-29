@@ -12,194 +12,155 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.UUID;
 
-class PlayerData 
-{
+class PlayerData {
     private final static String METADATA_TAG = "GT_PlayerData";
     private Thread loadingThread;
     private Thread savingThread;
     private String playerName;
     private boolean gotChopInfo = false;
     private boolean chopEnabled = GraviTree.instance.config_chopModeOnByDefault;
-    
-    boolean isGotChopInfo()
-    {
-        this.waitForLoadComplete();
-        return gotChopInfo;
-    }
-
-    void setGotChopInfo(boolean gotChopInfo)
-    {
-        this.gotChopInfo = gotChopInfo;
-        this.isDirty = true;
-    }
-    
-    boolean isChopEnabled()
-    {
-        this.waitForLoadComplete();
-        return chopEnabled;
-    }
-
-    void setChopEnabled(boolean chopEnabled)
-    {
-        this.chopEnabled = chopEnabled;
-        this.isDirty = true;
-    }
-
     private UUID playerID;
-    
-    static void Preload(Player player)
-    {
-        new PlayerData(player);
-    }
-    
-    static PlayerData FromPlayer(Player player)
-    {
-        List<MetadataValue> data = player.getMetadata(METADATA_TAG);
-        if(data == null || data.isEmpty())
-        {
-            return new PlayerData(player);
-        }
-        else
-        {
-            try
-            {
-                PlayerData playerData = (PlayerData)(data.get(0).value());
-                return playerData;
-            }
-            catch(Exception e)
-            {
-                return new PlayerData(player);
-            }
-        }
-    }
-    
-    private PlayerData(Player player)
-    {
+    private boolean isDirty = false;
+
+    private PlayerData(Player player) {
         this.playerName = player.getName();
         this.playerID = player.getUniqueId();
         this.loadingThread = new Thread(new DataLoader());
         this.loadingThread.start();
         player.setMetadata(METADATA_TAG, new FixedMetadataValue(GraviTree.instance, this));
     }
-    
-    private boolean isDirty = false;
-    
-    void saveChanges()
-    {
-        if(!this.isDirty) return;
-        
+
+    static void Preload(Player player) {
+        new PlayerData(player);
+    }
+
+    static PlayerData FromPlayer(Player player) {
+        List<MetadataValue> data = player.getMetadata(METADATA_TAG);
+        if (data == null || data.isEmpty()) {
+            return new PlayerData(player);
+        } else {
+            try {
+                return (PlayerData) (data.get(0).value());
+            } catch (Exception e) {
+                return new PlayerData(player);
+            }
+        }
+    }
+
+    boolean isGotChopInfo() {
+        this.waitForLoadComplete();
+        return gotChopInfo;
+    }
+
+    void setGotChopInfo(boolean gotChopInfo) {
+        this.gotChopInfo = gotChopInfo;
+        this.isDirty = true;
+    }
+
+    boolean isChopEnabled() {
+        this.waitForLoadComplete();
+        return chopEnabled;
+    }
+
+    void setChopEnabled(boolean chopEnabled) {
+        this.chopEnabled = chopEnabled;
+        this.isDirty = true;
+    }
+
+    void saveChanges() {
+        if (!this.isDirty) return;
+
         this.waitForLoadComplete();
         this.savingThread = new Thread(new DataSaver());
         this.savingThread.start();
     }
-    
-    private void waitForLoadComplete()
-    {
-        if(this.loadingThread != null)
-        {
-            try
-            {
+
+    private void waitForLoadComplete() {
+        if (this.loadingThread != null) {
+            try {
                 this.loadingThread.join();
+            } catch (InterruptedException e) {
             }
-            catch(InterruptedException e){}
             this.loadingThread = null;
         }
     }
-    
-    void waitForSaveComplete()
-    {
-        if(this.savingThread != null)
-        {
-            try
-            {
+
+    void waitForSaveComplete() {
+        if (this.savingThread != null) {
+            try {
                 this.savingThread.join();
+            } catch (InterruptedException e) {
             }
-            catch(InterruptedException e){}
         }
     }
-    
-    private void writeDataToFile()
-    {
-        try
-        {
+
+    private void writeDataToFile() {
+        try {
             FileConfiguration config = new YamlConfiguration();
             config.set("Player Name", this.playerName);
             config.set("Chop Enabled", this.chopEnabled);
             config.set("Received Messages.Chop", this.gotChopInfo);
             File playerFile = new File(DataStore.playerDataFolderPath + File.separator + this.playerID.toString());
             config.save(playerFile);
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             StringWriter errors = new StringWriter();
             e.printStackTrace(new PrintWriter(errors));
             GraviTree.AddLogEntry("Failed to save player data for " + playerID + " " + errors.toString());
         }
-        
+
         this.savingThread = null;
         this.isDirty = false;
     }
-    
-    private void readDataFromFile()
-    {
+
+    private void readDataFromFile() {
         File playerFile = new File(DataStore.playerDataFolderPath + File.separator + this.playerID.toString());
-        
+
         //if it exists as a file, read the file
-        if(playerFile.exists())
-        {           
-            boolean needRetry = false;
+        if (playerFile.exists()) {
+            boolean needRetry;
             int retriesRemaining = 5;
             Exception latestException = null;
-            do
-            {
-                try
-                {                   
+            do {
+                try {
                     needRetry = false;
                     FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
                     this.chopEnabled = config.getBoolean("Chop Enabled", true);
                     this.gotChopInfo = config.getBoolean("Received Messages.Chop", false);
                 }
-                    
+
                 //if there's any problem with the file's content, retry up to 5 times with 5 milliseconds between
-                catch(Exception e)
-                {
+                catch (Exception e) {
                     latestException = e;
                     needRetry = true;
                     retriesRemaining--;
                 }
-                
-                try
-                {
-                    if(needRetry) Thread.sleep(5);
+
+                try {
+                    if (needRetry) Thread.sleep(5);
+                } catch (InterruptedException exception) {
                 }
-                catch(InterruptedException exception) {}
-                
-            }while(needRetry && retriesRemaining >= 0);
-            
+
+            } while (needRetry && retriesRemaining >= 0);
+
             //if last attempt failed, log information about the problem
-            if(needRetry)
-            {
+            if (needRetry) {
                 StringWriter errors = new StringWriter();
                 latestException.printStackTrace(new PrintWriter(errors));
                 GraviTree.AddLogEntry("Failed to load data for " + playerID + " " + errors.toString());
             }
         }
     }
-    
-    private class DataSaver implements Runnable
-    {
+
+    private class DataSaver implements Runnable {
         @Override
-        public void run()
-        {
+        public void run() {
             writeDataToFile();
         }
     }
-    
-    private class DataLoader implements Runnable
-    {
+
+    private class DataLoader implements Runnable {
         @Override
-        public void run()
-        {
+        public void run() {
             readDataFromFile();
         }
     }
