@@ -24,7 +24,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
-class GraviTree extends JavaPlugin implements Listener {
+public class GraviTree extends JavaPlugin implements Listener {
     static GraviTree instance;
     //for logging to the console and log file
     private static Logger log = Logger.getLogger("Minecraft");
