@@ -127,20 +127,16 @@ class GraviTree extends JavaPlugin implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    @SuppressWarnings("unused")
-        // Used by events
     void onPlayerJoin(PlayerJoinEvent event) {
         PlayerData.Preload(event.getPlayer());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    @SuppressWarnings("unused")
-        // Used by events
     void onPlayerQuit(PlayerQuitEvent event) {
         PlayerData.FromPlayer(event.getPlayer()).saveChanges();
     }
 
-    @SuppressWarnings("unused") // Used by events
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     void onBlockBreak(BlockBreakEvent event) {
         Block brokenBlock = event.getBlock();
