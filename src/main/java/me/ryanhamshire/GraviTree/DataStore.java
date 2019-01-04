@@ -2,18 +2,15 @@ package me.ryanhamshire.GraviTree;
 
 import java.io.File;
 
-public class DataStore
-{
+class DataStore {
     private final static String dataLayerFolderPath = GraviTree.instance.getDataFolder().getPath();
     final static String playerDataFolderPath = dataLayerFolderPath + File.separator + "PlayerData";
-    
-    public DataStore()
-	{
+
+    public DataStore() {
         //ensure data folders exist
         File playerDataFolder = new File(playerDataFolderPath);
-        if(!playerDataFolder.exists())
-        {
-            playerDataFolder.mkdirs();
+        if (!playerDataFolder.exists()) {
+            if (!playerDataFolder.mkdirs()) throw new RuntimeException("Datafolder couldn't be created");
         }
     }
 }

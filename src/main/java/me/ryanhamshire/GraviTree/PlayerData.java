@@ -105,7 +105,7 @@ class PlayerData {
         } catch (Exception e) {
             StringWriter errors = new StringWriter();
             e.printStackTrace(new PrintWriter(errors));
-            GraviTree.AddLogEntry("Failed to save player data for " + playerID + " " + errors.toString());
+            GraviTree.addLogEntry("Failed to save player data for " + playerID + " " + errors.toString());
         }
 
         this.savingThread = null;
@@ -146,7 +146,7 @@ class PlayerData {
             if (needRetry) {
                 StringWriter errors = new StringWriter();
                 latestException.printStackTrace(new PrintWriter(errors));
-                GraviTree.AddLogEntry("Failed to load data for " + playerID + " " + errors.toString());
+                GraviTree.addLogEntry("Failed to load data for " + playerID + " " + errors.toString());
             }
         }
     }
