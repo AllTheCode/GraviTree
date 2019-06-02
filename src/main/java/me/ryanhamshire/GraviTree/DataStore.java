@@ -2,6 +2,8 @@ package me.ryanhamshire.GraviTree;
 
 import java.io.File;
 
+
+//TODO Everything the same as automaticinventory
 class DataStore {
     private final static String dataLayerFolderPath = GraviTree.instance.getDataFolder().getPath();
     final static String playerDataFolderPath = dataLayerFolderPath + File.separator + "PlayerData";
