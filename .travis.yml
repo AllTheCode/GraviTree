@@ -1,30 +1,43 @@
+#Basic java stuff
 language: java
-script: gradle build
 jdk:
   - openjdk8
+
+#Install tasks (Can't use apt - outdated)
 install:
-  - echo Do Nothing Here!
+  - curl -s get.sdkman.io | bash
+  - source "$HOME/.sdkman/bin/sdkman-init.sh"
+  - echo sdkman_auto_answer=true > ~/.sdkman/etc/config
+  - source "/home/travis/.sdkman/bin/sdkman-init.sh"
+  - sdk install gradle 5.5
+
+#Our projects don't have a gradle wrapper
+script: gradle build -Prelease
+
+#Don't build untagged branches
 branches:
   except:
     - untagged*
-before_deploy:
-  - gem install octokit -v 4.3.0
-deploy:
-  provider: releases
-  api_key:
-    secure: OkL0hbU5obGNsY9sf2HQAV0SdiikQ8GNUhAOagJAlvThSEFjjKVCcPXrGUBQidUGbHVd61OYqAd/+m88LtDSaWwlF9RaShZ6Ft91t7JAGwkjg4B2g2sBOkDtVenSRsqz18C+PmzkuTJlsl/0cBx10arhc+liOs8hHLldn6OQ8E13xfsA2D4sKVN2kUXwHamrk3muj872VmZinK7QjnNOFDYtpYP9mZNeN0c/R9DGY1oMkBI4dbp+iiC1INmjNFVfbZAxN1mz4tkVwiviZT4oVJqlOh65GfFNaA53WKvF4+hxXodAhH9+144yh6wCzrvXL2hR8dKvaDexcrJYJYWFb0QhO9ONkohu94qc3OEH4hETQ656ESZzvAmcnOHySK7/e7nuQfwQFxN8hUDiebkWHLWjZd9y7WXNeozvwqiFqhZNYAp+S/f1I0C382kJxDcsOGYef7lyODnPPdy4LB0S18+IiDNcf1JIwyN2hcC8k64EihosswMwlzsMBGscgJJnYoCvzUosKEDNKZo6WmmocO6ibin1PYDScnIRgRMlTkkyfol2Xfv3+bNGw+GwjZZIxe0Jp14M0I3j9fQiiW7liGXqnHvDNMTP2XnLeuo5b7i8gquFYokkKzthehGyM+fg/adQ9Az61heI5SRZsRMKhegtJLiaIVVk/s2nlxDa6ao=
-  file: build/libs/*
-  on:
-    repo: HelloWorldMinecraft/GraviTree
-  file_glob: true
-  skip_cleanup: true
+
+#Don't pester me about this stuff
 notifications:
   email: false
-after_success:
-  - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
-  - chmod +x send.sh
-  - "./send.sh success $WEBHOOK_URL"
-after_failure:
-  - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
-  - chmod +x send.sh
-  - "./send.sh failure $WEBHOOK_URL"
+
+#Deployment
+deploy:
+  provider: releases
+
+  #Cleanup deletes the file we build
+  skip_cleanup: true
+
+  #Point to the "libs" folder
+  file_glob: true
+  file: build/libs/*
+
+  #Acceptable repository
+  on:
+    repo: HelloWorldMinecraft/GraviTree
+
+  #API Key
+  api_key:
+    secure: OkL0hbU5obGNsY9sf2HQAV0SdiikQ8GNUhAOagJAlvThSEFjjKVCcPXrGUBQidUGbHVd61OYqAd/+m88LtDSaWwlF9RaShZ6Ft91t7JAGwkjg4B2g2sBOkDtVenSRsqz18C+PmzkuTJlsl/0cBx10arhc+liOs8hHLldn6OQ8E13xfsA2D4sKVN2kUXwHamrk3muj872VmZinK7QjnNOFDYtpYP9mZNeN0c/R9DGY1oMkBI4dbp+iiC1INmjNFVfbZAxN1mz4tkVwiviZT4oVJqlOh65GfFNaA53WKvF4+hxXodAhH9+144yh6wCzrvXL2hR8dKvaDexcrJYJYWFb0QhO9ONkohu94qc3OEH4hETQ656ESZzvAmcnOHySK7/e7nuQfwQFxN8hUDiebkWHLWjZd9y7WXNeozvwqiFqhZNYAp+S/f1I0C382kJxDcsOGYef7lyODnPPdy4LB0S18+IiDNcf1JIwyN2hcC8k64EihosswMwlzsMBGscgJJnYoCvzUosKEDNKZo6WmmocO6ibin1PYDScnIRgRMlTkkyfol2Xfv3+bNGw+GwjZZIxe0Jp14M0I3j9fQiiW7liGXqnHvDNMTP2XnLeuo5b7i8gquFYokkKzthehGyM+fg/adQ9Az61heI5SRZsRMKhegtJLiaIVVk/s2nlxDa6ao=
