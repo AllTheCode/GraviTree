@@ -1,8 +1,8 @@
-name: GraviTree
+name: ${project.name}
 main: me.ryanhamshire.GraviTree.GraviTree
 version: ${project.version}
-api-version: "1.13"
-authors: [HelloWorld]
+api-version: ${project.apiversion}
+authors: [ Username4723 ]
 commands:
   treesfall:
     description: Toggles tree blocks falling when a tree is chopped.
