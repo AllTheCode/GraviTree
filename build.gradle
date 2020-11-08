@@ -3,9 +3,6 @@ plugins {
     id 'kr.entree.spigradle' version '2.1.1'
 }
 
-repositories {
-}
-
 dependencies {
     compileOnly spigot("1.16.4")
 }
